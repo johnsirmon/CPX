@@ -15,6 +15,21 @@ This repository is initialized from `prd.md` and is intentionally scaffolded for
 
 The codebase now includes an initial M1 slice: normalized ingest, deterministic rule-based symbolization for the default v1 entity categories, projection output for the `cpx-v1` text artifact, and a corpus-driven validation baseline with eight synthetic cases. Vault-backed rehydration is still ahead.
 
+If any file above does not exist, skip it and continue.
+
+## Source-of-truth order
+
+When instructions conflict, follow this order:
+
+1. `prd.md`
+2. ADRs in `docs/adr/`
+3. repository instructions in `.github/`
+4. `AGENTS.md`
+5. inline code comments and local conventions
+
+Do not change user-visible behavior, artifact contracts, or product scope without updating the relevant source-of-truth document.
+
+
 ## Planned workflow
 
 Once the Rust toolchain is installed:
