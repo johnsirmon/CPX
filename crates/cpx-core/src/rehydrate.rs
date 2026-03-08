@@ -14,4 +14,3 @@ pub enum RehydrateError {
 pub fn rehydrate(_request: &RehydrateRequest) -> Result<String, RehydrateError> {
     Err(RehydrateError::NotYetImplemented)
 }
-

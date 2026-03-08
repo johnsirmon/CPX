@@ -62,15 +62,37 @@ fn run_case(corpus_dir: &Path, case: &CorpusCase) {
     let symbolized = symbolize(&document).expect("expected symbolization to succeed");
     let projection = project(&symbolized).expect("expected projection to succeed");
 
-    assert_eq!(symbolized.sanitized_contents, expected_sanitized, "case {} sanitized output differed; {}", case.id, case.notes);
-    assert_eq!(symbolized.symbol_count(), case.expected_symbol_count, "case {} symbol count differed; {}", case.id, case.notes);
-    assert_eq!(projection.body, expected_projection, "case {} projection output differed; {}", case.id, case.notes);
+    assert_eq!(
+        normalize_fixture(&symbolized.sanitized_contents),
+        normalize_fixture(&expected_sanitized),
+        "case {} sanitized output differed; {}",
+        case.id,
+        case.notes
+    );
+    assert_eq!(
+        symbolized.symbol_count(),
+        case.expected_symbol_count,
+        "case {} symbol count differed; {}",
+        case.id,
+        case.notes
+    );
+    assert_eq!(
+        normalize_fixture(&projection.body),
+        normalize_fixture(&expected_projection),
+        "case {} projection output differed; {}",
+        case.id,
+        case.notes
+    );
 }
 
 fn read_fixture(corpus_dir: &Path, relative_path: &str) -> String {
     let path = corpus_dir.join(relative_path);
-    fs::read_to_string(&path)
-        .unwrap_or_else(|error| panic!("expected fixture '{}' to be readable: {error}", path.display()))
+    fs::read_to_string(&path).unwrap_or_else(|error| {
+        panic!(
+            "expected fixture '{}' to be readable: {error}",
+            path.display()
+        )
+    })
 }
 
 fn corpus_dir() -> PathBuf {
@@ -78,4 +100,11 @@ fn corpus_dir() -> PathBuf {
         .join("../../tests/corpus")
         .canonicalize()
         .expect("expected corpus directory to exist")
+}
+
+fn normalize_fixture(contents: &str) -> String {
+    contents
+        .replace("\r\n", "\n")
+        .trim_end_matches('\n')
+        .to_owned()
 }

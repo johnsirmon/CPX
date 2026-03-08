@@ -83,7 +83,9 @@ fn case_id_from_source(source_name: &str) -> String {
         .rsplit(|ch| ch == '\\' || ch == '/')
         .next()
         .unwrap_or(source_name);
-    let stem = file_name.rsplit_once('.').map_or(file_name, |(name, _)| name);
+    let stem = file_name
+        .rsplit_once('.')
+        .map_or(file_name, |(name, _)| name);
     let mut normalized = String::new();
     let mut previous_was_dash = false;
 
@@ -122,10 +124,18 @@ mod tests {
         .expect("expected ingest to succeed");
         let symbolized = symbolize(&document).expect("expected symbolization to succeed");
         let projection = project(&symbolized).expect("expected projection to succeed");
-        let expected = include_str!("../../../tests/corpus/canonical-case/expected-projection.txt");
+        let expected = normalize_fixture(include_str!(
+            "../../../tests/corpus/canonical-case/expected-projection.txt"
+        ));
 
         assert_eq!(projection.case_id, "canonical-case");
-        assert_eq!(projection.body, expected);
+        assert_eq!(normalize_fixture(&projection.body), expected);
+    }
+
+    fn normalize_fixture(contents: &str) -> String {
+        contents
+            .replace("\r\n", "\n")
+            .trim_end_matches('\n')
+            .to_owned()
     }
 }
-

@@ -22,6 +22,8 @@ Read:
 
 When the Rust toolchain is installed, use:
 
+- On Windows with the MSVC toolchain, install Visual Studio Build Tools with the C++ workload so `link.exe` is available to Cargo.
+
 ```powershell
 cargo fmt --all
 cargo test --workspace

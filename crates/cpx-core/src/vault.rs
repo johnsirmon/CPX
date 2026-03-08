@@ -14,4 +14,3 @@ pub enum VaultError {
 pub fn open(_case_id: &str) -> Result<VaultHandle, VaultError> {
     Err(VaultError::NotYetImplemented)
 }
-

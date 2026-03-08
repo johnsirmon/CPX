@@ -12,4 +12,3 @@ pub const EXIT_CODE_SAFETY_FAILURE: i32 = 2;
 pub const EXIT_CODE_VAULT_ERROR: i32 = 3;
 pub const EXIT_CODE_INPUT_ERROR: i32 = 4;
 pub const EXIT_CODE_FORMAT_MISMATCH: i32 = 5;
-

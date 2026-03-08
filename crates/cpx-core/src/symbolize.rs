@@ -74,7 +74,10 @@ impl SymbolizedCase {
     }
 
     pub fn count_by_kind(&self, kind: EntityKind) -> usize {
-        self.entries.iter().filter(|entry| entry.kind == kind).count()
+        self.entries
+            .iter()
+            .filter(|entry| entry.kind == kind)
+            .count()
     }
 }
 
@@ -151,8 +154,20 @@ fn replace_email_tokens(line: &str, entries: &mut Vec<SymbolEntry>) -> String {
 }
 
 fn replace_labeled_usernames(line: &str, entries: &mut Vec<SymbolEntry>) -> String {
-    let line = replace_labeled_tokens(line, "Username:", EntityKind::Username, entries, looks_like_username);
-    replace_labeled_tokens(&line, "User:", EntityKind::Username, entries, looks_like_username)
+    let line = replace_labeled_tokens(
+        line,
+        "Username:",
+        EntityKind::Username,
+        entries,
+        looks_like_username,
+    );
+    replace_labeled_tokens(
+        &line,
+        "User:",
+        EntityKind::Username,
+        entries,
+        looks_like_username,
+    )
 }
 
 fn replace_ip_tokens(line: &str, entries: &mut Vec<SymbolEntry>) -> String {
@@ -268,7 +283,12 @@ fn replace_labeled_uuids(
 }
 
 fn replace_generic_uuid_tokens(line: &str, entries: &mut Vec<SymbolEntry>) -> String {
-    replace_token_matches(line, entries, EntityKind::InternalIdentifier, looks_like_uuid)
+    replace_token_matches(
+        line,
+        entries,
+        EntityKind::InternalIdentifier,
+        looks_like_uuid,
+    )
 }
 
 fn replace_token_matches<F>(
@@ -284,7 +304,10 @@ where
     let mut cursor = 0;
 
     while cursor < line.len() {
-        let next_char = line[cursor..].chars().next().expect("cursor should stay in bounds");
+        let next_char = line[cursor..]
+            .chars()
+            .next()
+            .expect("cursor should stay in bounds");
 
         if next_char.is_whitespace() {
             output.push(next_char);
@@ -364,13 +387,17 @@ fn looks_like_email(candidate: &str) -> bool {
 
 fn looks_like_hostname(candidate: &str) -> bool {
     !candidate.is_empty()
-        && candidate.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '.' | '_'))
+        && candidate
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '.' | '_'))
         && candidate.chars().any(|ch| matches!(ch, '-' | '.'))
 }
 
 fn looks_like_username(candidate: &str) -> bool {
     !candidate.is_empty()
-        && candidate.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.'))
+        && candidate
+            .chars()
+            .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.'))
         && candidate.chars().any(|ch| ch.is_ascii_alphabetic())
 }
 
@@ -476,9 +503,11 @@ mod tests {
         .expect("expected ingest to succeed");
 
         let symbolized = symbolize(&document).expect("expected symbolization to succeed");
-        let expected = include_str!("../../../tests/corpus/canonical-case/expected-sanitized.txt");
+        let expected = normalize_fixture(include_str!(
+            "../../../tests/corpus/canonical-case/expected-sanitized.txt"
+        ));
 
-        assert_eq!(symbolized.sanitized_contents, expected);
+        assert_eq!(normalize_fixture(&symbolized.sanitized_contents), expected);
         assert_eq!(symbolized.symbol_count(), 5);
         assert_eq!(symbolized.count_by_kind(EntityKind::CustomerName), 1);
         assert_eq!(symbolized.count_by_kind(EntityKind::Hostname), 1);
@@ -516,7 +545,10 @@ mod tests {
 
         let symbolized = symbolize(&document).expect("expected symbolization to succeed");
 
-        assert_eq!(symbolized.sanitized_contents, "Username: [U1]\nPortal URL: (URL1),");
+        assert_eq!(
+            symbolized.sanitized_contents,
+            "Username: [U1]\nPortal URL: (URL1),"
+        );
     }
 
     #[test]
@@ -545,5 +577,11 @@ mod tests {
 
         assert_eq!(error, super::SymbolizeError::UnsanitizedContent);
     }
-}
 
+    fn normalize_fixture(contents: &str) -> String {
+        contents
+            .replace("\r\n", "\n")
+            .trim_end_matches('\n')
+            .to_owned()
+    }
+}

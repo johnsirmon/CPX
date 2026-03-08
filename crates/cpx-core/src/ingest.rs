@@ -62,4 +62,3 @@ mod tests {
         assert_eq!(error, IngestError::EmptyInput);
     }
 }
-

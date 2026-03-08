@@ -19,6 +19,8 @@ The codebase now includes an initial M1 slice: normalized ingest, deterministic 
 
 Once the Rust toolchain is installed:
 
+- On Windows with the MSVC toolchain, install Visual Studio Build Tools with the C++ workload so `link.exe` is available.
+
 ```powershell
 cargo fmt --all
 cargo test --workspace

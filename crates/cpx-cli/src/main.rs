@@ -148,8 +148,8 @@ fn read_input(input: Option<&str>) -> Result<IngestRequest> {
             })
         }
         Some(path) => {
-            let contents = fs::read_to_string(path)
-                .with_context(|| format!("failed to read '{path}'"))?;
+            let contents =
+                fs::read_to_string(path).with_context(|| format!("failed to read '{path}'"))?;
 
             Ok(IngestRequest {
                 source_name: path.to_owned(),
@@ -237,4 +237,3 @@ mod tests {
         }
     }
 }
-

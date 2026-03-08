@@ -11,6 +11,8 @@ Read these files first:
 
 Run these once the Rust toolchain is installed:
 
+- On Windows with the MSVC toolchain, make sure Visual Studio Build Tools with the C++ workload are installed so `link.exe` is present.
+
 ```powershell
 cargo fmt --all
 cargo test --workspace
