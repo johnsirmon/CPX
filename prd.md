@@ -420,12 +420,12 @@ Exit criteria:
 
 ## 14. Open questions
 
-- [ ] [Owner: John] What is the v1 key management strategy for the local vault: OS keychain, passphrase, file key, or another local-only approach?
-- [ ] [Owner: John] Which input forms are mandatory for pilot readiness: single file, directory, stdin, structured JSON, or all of the above?
-- [ ] [Owner: John] Will v1 ship with fixed built-in detection rules only, or is local rule configuration required before pilot use?
-- [ ] [Owner: John] What compatibility promise should CPX make for `cpx-v1` artifacts across patch and minor releases?
-- [ ] [Owner: John] What minimum reference corpus is required to trust the release gates for safety and projection quality?
-- [ ] [Owner: John] What level of human review is mandatory before merging agent-authored changes, especially for vault, symbolization, and artifact format code?
+- [x] [Owner: John] v1 key management strategy: CPX uses a user-supplied local passphrase to encrypt and unlock the vault. OS keychain integration, file-key mode, and multi-key strategies are out of scope for v1.
+- [x] [Owner: John] Mandatory pilot-ready input forms: single file and stdin. Directory ingestion and structured JSON are deferred from v1.
+- [x] [Owner: John] v1 ships with fixed built-in deterministic detection rules only. Local rule configuration is out of scope for pilot readiness.
+- [x] [Owner: John] Compatibility promise for `cpx-v1`: all patch and minor releases must preserve read compatibility for valid `cpx-v1` artifacts. Additive optional fields are allowed. Breaking changes require a new format version such as `cpx-v2`.
+- [x] [Owner: John] Minimum trusted reference corpus for v1 release gates: 10 synthetic cases total, including 8 baseline cases and 2 adversarial cases, covering all default entity categories plus projection-safety and round-trip assertions.
+- [x] [Owner: John] Human review rule for agent-authored changes: all agent-authored PRs require at least one human review and passing CI. Changes to vault logic, symbolization, artifact format, exit codes, or dependencies additionally require explicit owner approval before merge.
 
 ## 15. Decision log
 
