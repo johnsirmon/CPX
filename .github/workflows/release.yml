@@ -1,0 +1,57 @@
+name: release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact_name: cpx-linux-x86_64
+            binary_path: target/release/cpx
+            archive_name: cpx-linux-x86_64.tar.gz
+          - os: windows-latest
+            artifact_name: cpx-windows-x86_64
+            binary_path: target/release/cpx.exe
+            archive_name: cpx-windows-x86_64.zip
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run tests
+        run: cargo test --workspace
+
+      - name: Build release binary
+        run: cargo build --release -p cpx-cli
+
+      - name: Package Linux artifact
+        if: runner.os == 'Linux'
+        run: tar -czf "${{ matrix.archive_name }}" -C target/release cpx
+
+      - name: Package Windows artifact
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: Compress-Archive -Path target\release\cpx.exe -DestinationPath "${{ matrix.archive_name }}"
+
+      - name: Upload workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: ${{ matrix.archive_name }}
+
+      - name: Publish release artifact
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ matrix.archive_name }}

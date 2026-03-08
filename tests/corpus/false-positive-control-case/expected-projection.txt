@@ -1,0 +1,8 @@
+FORMAT cpx-v1
+CASE false-positive-control-case
+SUMMARY
+ line_count=2
+ symbolized_entities=0
+EVENTS
+ t+00 Build 42 completed on 2026-03-08T00:00:00Z with error 0x80070005.
+ t+01 Retry count: 3

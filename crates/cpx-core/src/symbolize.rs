@@ -1,7 +1,8 @@
 use crate::ingest::CaseDocument;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum EntityKind {
     CustomerName,
     TenantId,
@@ -47,7 +48,7 @@ impl EntityKind {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SymbolEntry {
     pub kind: EntityKind,
     pub symbol: String,

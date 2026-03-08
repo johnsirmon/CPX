@@ -11,7 +11,7 @@ This directory contains synthetic support-case fixtures used for safety, regress
 
 ## Current status
 
-The PRD requires at least 8 synthetic cases for v1, including adversarial cases. The repository now includes an 8-case baseline that covers the current deterministic rules plus two adversarial punctuation-heavy cases.
+The PRD release gate now expects 10 synthetic cases total, including adversarial cases and round-trip assertions. The repository currently includes 10 cases with two adversarial fixtures and round-trip validation through the local vault.
 
 ## Expected layout
 
@@ -22,7 +22,9 @@ tests\corpus\
   adversarial-resource-punctuation-case\
   canonical-case\
   customer-url-case\
+  false-positive-control-case\
   internal-id-case\
+  mixed-repeat-entity-case\
   repeat-email-case\
   subscription-email-case\
   username-ip-case\

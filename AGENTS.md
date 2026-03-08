@@ -12,10 +12,13 @@ Read these files first:
 Run these once the Rust toolchain is installed:
 
 - On Windows with the MSVC toolchain, make sure Visual Studio Build Tools with the C++ workload are installed so `link.exe` is present.
+- For a fresh Windows shell, start with `.\scripts\bootstrap-windows.ps1`.
+- For repeat local checks, use `.\scripts\validate-local.ps1`.
 
 ```powershell
 cargo fmt --all
 cargo test --workspace
+cargo test -p cpx-core --test corpus corpus_cases_match_expected_outputs
 cargo run -p cpx-cli -- --help
 ```
 

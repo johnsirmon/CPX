@@ -1,0 +1,11 @@
+FORMAT cpx-v1
+CASE mixed-repeat-entity-case
+SUMMARY
+ line_count=2
+ symbolized_entities=3
+ username=1
+ hostname=1
+ customer_url=1
+EVENTS
+ t+00 User: U1
+ t+01 Retry from host H1 to host H1 for URL URL1.

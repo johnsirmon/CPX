@@ -79,17 +79,38 @@ pub fn project(case: &SymbolizedCase) -> Result<Projection, ProjectError> {
 }
 
 fn case_id_from_source(source_name: &str) -> String {
-    let file_name = source_name
-        .rsplit(|ch| ch == '\\' || ch == '/')
-        .next()
-        .unwrap_or(source_name);
+    let segments = source_name
+        .split(|ch| ch == '\\' || ch == '/')
+        .filter(|segment| !segment.is_empty())
+        .collect::<Vec<_>>();
+    let file_name = segments.last().copied().unwrap_or(source_name);
     let stem = file_name
         .rsplit_once('.')
         .map_or(file_name, |(name, _)| name);
+    let normalized_stem = normalize_case_component(stem);
+
+    if normalized_stem == "input" {
+        if let Some(parent) = segments.iter().rev().nth(1) {
+            let normalized_parent = normalize_case_component(parent);
+
+            if !normalized_parent.is_empty() {
+                return normalized_parent;
+            }
+        }
+    }
+
+    if normalized_stem.is_empty() {
+        return "case".to_owned();
+    }
+
+    normalized_stem
+}
+
+fn normalize_case_component(value: &str) -> String {
     let mut normalized = String::new();
     let mut previous_was_dash = false;
 
-    for ch in stem.chars() {
+    for ch in value.chars() {
         if ch.is_ascii_alphanumeric() {
             normalized.push(ch.to_ascii_lowercase());
             previous_was_dash = false;
@@ -99,13 +120,7 @@ fn case_id_from_source(source_name: &str) -> String {
         }
     }
 
-    let normalized = normalized.trim_matches('-').to_owned();
-
-    if normalized.is_empty() {
-        return "case".to_owned();
-    }
-
-    normalized
+    normalized.trim_matches('-').to_owned()
 }
 
 #[cfg(test)]
@@ -130,6 +145,19 @@ mod tests {
 
         assert_eq!(projection.case_id, "canonical-case");
         assert_eq!(normalize_fixture(&projection.body), expected);
+    }
+
+    #[test]
+    fn uses_parent_directory_when_the_file_name_is_input() {
+        let document = ingest(IngestRequest {
+            source_name: r"C:\fixtures\canonical-case\input.txt".to_owned(),
+            contents: include_str!("../../../tests/corpus/canonical-case/input.txt").to_owned(),
+        })
+        .expect("expected ingest to succeed");
+        let symbolized = symbolize(&document).expect("expected symbolization to succeed");
+        let projection = project(&symbolized).expect("expected projection to succeed");
+
+        assert_eq!(projection.case_id, "canonical-case");
     }
 
     fn normalize_fixture(contents: &str) -> String {

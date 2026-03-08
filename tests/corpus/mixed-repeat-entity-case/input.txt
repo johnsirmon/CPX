@@ -1,0 +1,2 @@
+User: svc.collector
+Retry from host ama-prod-17 to host ama-prod-17 for URL https://portal.contoso.example.com/cases/777.

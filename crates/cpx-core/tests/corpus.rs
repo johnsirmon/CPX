@@ -1,9 +1,12 @@
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use cpx_core::ingest::{ingest, IngestRequest};
 use cpx_core::project::project;
+use cpx_core::rehydrate::{rehydrate, RehydrateRequest};
 use cpx_core::symbolize::symbolize;
+use cpx_core::vault::{open, store, StoreRequest};
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -32,7 +35,7 @@ fn corpus_cases_match_expected_outputs() {
         serde_json::from_str(&manifest_text).expect("expected manifest json to parse");
 
     assert_eq!(manifest.version, 1);
-    assert!(manifest.minimum_cases_for_v1 >= 8);
+    assert!(manifest.minimum_cases_for_v1 >= 10);
     assert!(manifest.cases.len() >= manifest.minimum_cases_for_v1);
     assert!(
         manifest
@@ -61,6 +64,23 @@ fn run_case(corpus_dir: &Path, case: &CorpusCase) {
     .expect("expected ingest to succeed");
     let symbolized = symbolize(&document).expect("expected symbolization to succeed");
     let projection = project(&symbolized).expect("expected projection to succeed");
+    let vault_path = temp_vault_path(&case.id);
+    let passphrase = "corpus-test-passphrase";
+    store(
+        &vault_path,
+        &StoreRequest {
+            case_id: &projection.case_id,
+            entries: &symbolized.entries,
+            passphrase,
+        },
+    )
+    .expect("expected vault storage to succeed");
+    let vault = open(&vault_path, passphrase).expect("expected vault reopen to succeed");
+    let rehydrated = rehydrate(&RehydrateRequest {
+        projection_response: symbolized.sanitized_contents.clone(),
+        vault,
+    })
+    .expect("expected round-trip rehydration to succeed");
 
     assert_eq!(
         normalize_fixture(&symbolized.sanitized_contents),
@@ -83,6 +103,15 @@ fn run_case(corpus_dir: &Path, case: &CorpusCase) {
         case.id,
         case.notes
     );
+    assert_eq!(
+        normalize_fixture(&rehydrated),
+        normalize_fixture(&document.contents),
+        "case {} rehydrated output differed; {}",
+        case.id,
+        case.notes
+    );
+
+    let _ = fs::remove_file(vault_path);
 }
 
 fn read_fixture(corpus_dir: &Path, relative_path: &str) -> String {
@@ -100,6 +129,14 @@ fn corpus_dir() -> PathBuf {
         .join("../../tests/corpus")
         .canonicalize()
         .expect("expected corpus directory to exist")
+}
+
+fn temp_vault_path(case_id: &str) -> PathBuf {
+    let unique = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("clock should be monotonic enough for tests")
+        .as_nanos();
+    std::env::temp_dir().join(format!("cpx-corpus-{case_id}-{unique}.vault"))
 }
 
 fn normalize_fixture(contents: &str) -> String {

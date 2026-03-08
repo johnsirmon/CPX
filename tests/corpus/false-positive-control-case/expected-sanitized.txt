@@ -1,0 +1,2 @@
+Build 42 completed on 2026-03-08T00:00:00Z with error 0x80070005.
+Retry count: 3

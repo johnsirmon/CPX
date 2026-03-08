@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "minimum_cases_for_v1": 8,
+  "minimum_cases_for_v1": 10,
   "cases": [
     {
       "id": "canonical-case",
@@ -65,6 +65,22 @@
       "expected_projection": "adversarial-resource-punctuation-case/expected-projection.txt",
       "expected_symbol_count": 1,
       "notes": "Adversarial case with a resource ID followed by punctuation."
+    },
+    {
+      "id": "false-positive-control-case",
+      "input": "false-positive-control-case/input.txt",
+      "expected_sanitized": "false-positive-control-case/expected-sanitized.txt",
+      "expected_projection": "false-positive-control-case/expected-projection.txt",
+      "expected_symbol_count": 0,
+      "notes": "Control case to confirm timestamps and error codes are preserved without accidental symbolization."
+    },
+    {
+      "id": "mixed-repeat-entity-case",
+      "input": "mixed-repeat-entity-case/input.txt",
+      "expected_sanitized": "mixed-repeat-entity-case/expected-sanitized.txt",
+      "expected_projection": "mixed-repeat-entity-case/expected-projection.txt",
+      "expected_symbol_count": 3,
+      "notes": "Mixed case that reuses hostname symbols across repeated host markers while combining username and URL rules."
     }
   ]
 }

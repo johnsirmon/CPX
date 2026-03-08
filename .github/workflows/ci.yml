@@ -1,0 +1,36 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  validate:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Check formatting
+        run: cargo fmt --all --check
+
+      - name: Run workspace tests
+        run: cargo test --workspace
+
+      - name: Run corpus regression gate
+        run: cargo test -p cpx-core --test corpus corpus_cases_match_expected_outputs
+
+      - name: Verify CLI help
+        run: cargo run -p cpx-cli -- --help
