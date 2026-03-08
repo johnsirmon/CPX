@@ -43,8 +43,11 @@ pub fn project(case: &SymbolizedCase) -> Result<Projection, ProjectError> {
         EntityKind::TenantId,
         EntityKind::SubscriptionId,
         EntityKind::EmailAddress,
+        EntityKind::Username,
         EntityKind::Hostname,
+        EntityKind::IpAddress,
         EntityKind::ResourceId,
+        EntityKind::CustomerUrl,
         EntityKind::InternalIdentifier,
     ] {
         let count = case.count_by_kind(kind);

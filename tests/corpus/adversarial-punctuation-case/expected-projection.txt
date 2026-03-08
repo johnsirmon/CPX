@@ -1,0 +1,10 @@
+FORMAT cpx-v1
+CASE adversarial-punctuation-case
+SUMMARY
+ line_count=2
+ symbolized_entities=2
+ username=1
+ customer_url=1
+EVENTS
+ t+00 Username: [U1]
+ t+01 Portal URL: (URL1),

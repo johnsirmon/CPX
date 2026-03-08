@@ -1,0 +1,2 @@
+Username: [svc-collector]
+Portal URL: (https://portal.contoso.example.com/cases/777),

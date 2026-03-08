@@ -13,7 +13,7 @@ This repository is initialized from `prd.md` and is intentionally scaffolded for
 - Starter corpus path: `tests\corpus\`
 - Canonical synthetic example: `tests\corpus\canonical-case\`
 
-The codebase now includes an initial M1 slice: normalized ingest, deterministic rule-based symbolization for the starter corpus patterns, and projection output for the `cpx-v1` text artifact. Vault-backed rehydration, broader rule coverage, and the full validation corpus are still ahead.
+The codebase now includes an initial M1 slice: normalized ingest, deterministic rule-based symbolization for the default v1 entity categories, projection output for the `cpx-v1` text artifact, and a corpus-driven validation baseline with eight synthetic cases. Vault-backed rehydration is still ahead.
 
 ## Planned workflow
 
@@ -55,9 +55,8 @@ tests\
 
 ## Next implementation steps
 
-1. Expand deterministic rule coverage beyond the canonical starter case patterns.
-2. Add the rest of the synthetic corpus required by the PRD.
-3. Implement vault-backed local rehydration.
-4. Add automated tests for round-trip and safety failure behavior.
-5. Install the Rust toolchain in this environment and run the full workspace validation commands.
+1. Implement vault-backed local rehydration.
+2. Add automated round-trip tests for approved symbolic output.
+3. Harden symbolization rules against additional adversarial formatting.
+4. Install the Rust toolchain in this environment and run the full workspace validation commands.
 

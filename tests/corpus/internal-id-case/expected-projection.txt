@@ -1,0 +1,8 @@
+FORMAT cpx-v1
+CASE internal-id-case
+SUMMARY
+ line_count=1
+ symbolized_entities=1
+ internal_identifier=1
+EVENTS
+ t+00 Correlation: ID1

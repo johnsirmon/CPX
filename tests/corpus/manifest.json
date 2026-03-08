@@ -7,9 +7,64 @@
       "input": "canonical-case/input.txt",
       "expected_sanitized": "canonical-case/expected-sanitized.txt",
       "expected_projection": "canonical-case/expected-projection.txt",
-      "expected_rehydrated": "canonical-case/expected-rehydrated.txt",
       "expected_symbol_count": 5,
       "notes": "Starter synthetic case for onboarding and artifact-format validation."
+    },
+    {
+      "id": "subscription-email-case",
+      "input": "subscription-email-case/input.txt",
+      "expected_sanitized": "subscription-email-case/expected-sanitized.txt",
+      "expected_projection": "subscription-email-case/expected-projection.txt",
+      "expected_symbol_count": 2,
+      "notes": "Covers labeled subscription IDs and email addresses."
+    },
+    {
+      "id": "username-ip-case",
+      "input": "username-ip-case/input.txt",
+      "expected_sanitized": "username-ip-case/expected-sanitized.txt",
+      "expected_projection": "username-ip-case/expected-projection.txt",
+      "expected_symbol_count": 2,
+      "notes": "Covers labeled usernames and IPv4 addresses."
+    },
+    {
+      "id": "customer-url-case",
+      "input": "customer-url-case/input.txt",
+      "expected_sanitized": "customer-url-case/expected-sanitized.txt",
+      "expected_projection": "customer-url-case/expected-projection.txt",
+      "expected_symbol_count": 1,
+      "notes": "Covers customer-specific URLs with query strings."
+    },
+    {
+      "id": "internal-id-case",
+      "input": "internal-id-case/input.txt",
+      "expected_sanitized": "internal-id-case/expected-sanitized.txt",
+      "expected_projection": "internal-id-case/expected-projection.txt",
+      "expected_symbol_count": 1,
+      "notes": "Covers generic internal identifiers when no more specific rule applies."
+    },
+    {
+      "id": "repeat-email-case",
+      "input": "repeat-email-case/input.txt",
+      "expected_sanitized": "repeat-email-case/expected-sanitized.txt",
+      "expected_projection": "repeat-email-case/expected-projection.txt",
+      "expected_symbol_count": 1,
+      "notes": "Verifies repeated values reuse the same symbol within one case."
+    },
+    {
+      "id": "adversarial-punctuation-case",
+      "input": "adversarial-punctuation-case/input.txt",
+      "expected_sanitized": "adversarial-punctuation-case/expected-sanitized.txt",
+      "expected_projection": "adversarial-punctuation-case/expected-projection.txt",
+      "expected_symbol_count": 2,
+      "notes": "Adversarial case with wrapped punctuation around usernames and URLs."
+    },
+    {
+      "id": "adversarial-resource-punctuation-case",
+      "input": "adversarial-resource-punctuation-case/input.txt",
+      "expected_sanitized": "adversarial-resource-punctuation-case/expected-sanitized.txt",
+      "expected_projection": "adversarial-resource-punctuation-case/expected-projection.txt",
+      "expected_symbol_count": 1,
+      "notes": "Adversarial case with a resource ID followed by punctuation."
     }
   ]
 }

@@ -7,8 +7,11 @@ pub enum EntityKind {
     TenantId,
     SubscriptionId,
     EmailAddress,
+    Username,
     Hostname,
+    IpAddress,
     ResourceId,
+    CustomerUrl,
     InternalIdentifier,
 }
 
@@ -19,8 +22,11 @@ impl EntityKind {
             Self::TenantId => "T",
             Self::SubscriptionId => "S",
             Self::EmailAddress => "E",
+            Self::Username => "U",
             Self::Hostname => "H",
+            Self::IpAddress => "IP",
             Self::ResourceId => "R",
+            Self::CustomerUrl => "URL",
             Self::InternalIdentifier => "ID",
         }
     }
@@ -31,8 +37,11 @@ impl EntityKind {
             Self::TenantId => "tenant_id",
             Self::SubscriptionId => "subscription_id",
             Self::EmailAddress => "email_address",
+            Self::Username => "username",
             Self::Hostname => "hostname",
+            Self::IpAddress => "ip_address",
             Self::ResourceId => "resource_id",
+            Self::CustomerUrl => "customer_url",
             Self::InternalIdentifier => "internal_identifier",
         }
     }
@@ -92,9 +101,12 @@ pub fn symbolize(document: &CaseDocument) -> Result<SymbolizedCase, SymbolizeErr
 
 fn sanitize_line(line: &str, entries: &mut Vec<SymbolEntry>) -> String {
     let line = replace_customer_name(line, entries);
+    let line = replace_url_tokens(&line, entries);
     let line = replace_resource_ids(&line, entries);
     let line = replace_email_tokens(&line, entries);
+    let line = replace_labeled_usernames(&line, entries);
     let line = replace_host_tokens(&line, entries);
+    let line = replace_ip_tokens(&line, entries);
     let line = replace_labeled_uuids(&line, "Tenant:", EntityKind::TenantId, entries);
     let line = replace_labeled_uuids(&line, "Subscription:", EntityKind::SubscriptionId, entries);
     replace_generic_uuid_tokens(&line, entries)
@@ -130,8 +142,21 @@ fn replace_resource_ids(line: &str, entries: &mut Vec<SymbolEntry>) -> String {
     })
 }
 
+fn replace_url_tokens(line: &str, entries: &mut Vec<SymbolEntry>) -> String {
+    replace_token_matches(line, entries, EntityKind::CustomerUrl, looks_like_url)
+}
+
 fn replace_email_tokens(line: &str, entries: &mut Vec<SymbolEntry>) -> String {
     replace_token_matches(line, entries, EntityKind::EmailAddress, looks_like_email)
+}
+
+fn replace_labeled_usernames(line: &str, entries: &mut Vec<SymbolEntry>) -> String {
+    let line = replace_labeled_tokens(line, "Username:", EntityKind::Username, entries, looks_like_username);
+    replace_labeled_tokens(&line, "User:", EntityKind::Username, entries, looks_like_username)
+}
+
+fn replace_ip_tokens(line: &str, entries: &mut Vec<SymbolEntry>) -> String {
+    replace_token_matches(line, entries, EntityKind::IpAddress, looks_like_ipv4)
 }
 
 fn replace_host_tokens(line: &str, entries: &mut Vec<SymbolEntry>) -> String {
@@ -148,10 +173,51 @@ fn replace_host_tokens(line: &str, entries: &mut Vec<SymbolEntry>) -> String {
         output.push_str(&line[cursor..token_start]);
 
         let token = &line[token_start..token_end];
-        let (core, suffix) = split_token_suffix(token);
+        let (prefix, core, suffix) = split_token_affixes(token);
 
         if looks_like_hostname(core) {
             let symbol = symbol_for(entries, EntityKind::Hostname, core);
+            output.push_str(prefix);
+            output.push_str(&symbol);
+            output.push_str(suffix);
+        } else {
+            output.push_str(token);
+        }
+
+        cursor = token_end;
+    }
+
+    output.push_str(&line[cursor..]);
+    output
+}
+
+fn replace_labeled_tokens<F>(
+    line: &str,
+    marker: &str,
+    kind: EntityKind,
+    entries: &mut Vec<SymbolEntry>,
+    predicate: F,
+) -> String
+where
+    F: Fn(&str) -> bool,
+{
+    let mut output = String::new();
+    let mut cursor = 0;
+
+    while let Some(marker_rel) = line[cursor..].find(marker) {
+        let marker_start = cursor + marker_rel;
+        let token_start = marker_start + marker.len();
+        let token_start = skip_spaces(line, token_start);
+        let token_end = scan_token_end(line, token_start);
+
+        output.push_str(&line[cursor..token_start]);
+
+        let token = &line[token_start..token_end];
+        let (prefix, core, suffix) = split_token_affixes(token);
+
+        if predicate(core) {
+            let symbol = symbol_for(entries, kind, core);
+            output.push_str(prefix);
             output.push_str(&symbol);
             output.push_str(suffix);
         } else {
@@ -183,10 +249,11 @@ fn replace_labeled_uuids(
         output.push_str(&line[cursor..token_start]);
 
         let token = &line[token_start..token_end];
-        let (core, suffix) = split_token_suffix(token);
+        let (prefix, core, suffix) = split_token_affixes(token);
 
         if looks_like_uuid(core) {
             let symbol = symbol_for(entries, kind, core);
+            output.push_str(prefix);
             output.push_str(&symbol);
             output.push_str(suffix);
         } else {
@@ -227,10 +294,11 @@ where
 
         let token_end = scan_token_end(line, cursor);
         let token = &line[cursor..token_end];
-        let (core, suffix) = split_token_suffix(token);
+        let (prefix, core, suffix) = split_token_affixes(token);
 
         if predicate(core) {
             let symbol = symbol_for(entries, kind, core);
+            output.push_str(prefix);
             output.push_str(&symbol);
             output.push_str(suffix);
         } else {
@@ -266,13 +334,24 @@ fn symbol_for(entries: &mut Vec<SymbolEntry>, kind: EntityKind, raw: &str) -> St
 fn contains_detectable_sensitive_content(contents: &str) -> bool {
     contents.lines().any(|line| {
         line.split_whitespace().any(|token| {
-            let (core, _) = split_token_suffix(token);
+            let (_, core, _) = split_token_affixes(token);
             core.starts_with("/subscriptions/")
+                || looks_like_url(core)
                 || looks_like_email(core)
+                || looks_like_ipv4(core)
                 || looks_like_uuid(core)
                 || looks_like_hostname(core)
         })
     })
+}
+
+fn looks_like_url(candidate: &str) -> bool {
+    if !(candidate.starts_with("https://") || candidate.starts_with("http://")) {
+        return false;
+    }
+
+    let remainder = candidate.split_once("://").map_or("", |(_, value)| value);
+    !remainder.is_empty() && remainder.contains('.')
 }
 
 fn looks_like_email(candidate: &str) -> bool {
@@ -287,6 +366,27 @@ fn looks_like_hostname(candidate: &str) -> bool {
     !candidate.is_empty()
         && candidate.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '.' | '_'))
         && candidate.chars().any(|ch| matches!(ch, '-' | '.'))
+}
+
+fn looks_like_username(candidate: &str) -> bool {
+    !candidate.is_empty()
+        && candidate.chars().all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.'))
+        && candidate.chars().any(|ch| ch.is_ascii_alphabetic())
+}
+
+fn looks_like_ipv4(candidate: &str) -> bool {
+    let parts = candidate.split('.').collect::<Vec<_>>();
+
+    if parts.len() != 4 {
+        return false;
+    }
+
+    parts.iter().all(|part| {
+        !part.is_empty()
+            && part.len() <= 3
+            && part.chars().all(|ch| ch.is_ascii_digit())
+            && part.parse::<u8>().is_ok()
+    })
 }
 
 fn looks_like_uuid(candidate: &str) -> bool {
@@ -341,9 +441,24 @@ fn skip_spaces(line: &str, start: usize) -> usize {
     index
 }
 
-fn split_token_suffix(token: &str) -> (&str, &str) {
-    let trimmed_len = token.trim_end_matches(|ch: char| matches!(ch, '.' | ',' | ';' | ')' | ':')).len();
-    token.split_at(trimmed_len)
+fn split_token_affixes(token: &str) -> (&str, &str, &str) {
+    let prefix_len = token
+        .chars()
+        .take_while(|ch| matches!(ch, '(' | '[' | '{' | '"' | '\''))
+        .map(char::len_utf8)
+        .sum::<usize>();
+    let suffix_len = token[prefix_len..]
+        .chars()
+        .rev()
+        .take_while(|ch| matches!(ch, '.' | ',' | ';' | ')' | ':' | ']' | '}' | '"' | '\''))
+        .map(char::len_utf8)
+        .sum::<usize>();
+    let core_end = token.len().saturating_sub(suffix_len);
+    let prefix = &token[..prefix_len];
+    let core = &token[prefix_len..core_end];
+    let suffix = &token[core_end..];
+
+    (prefix, core, suffix)
 }
 
 #[cfg(test)]
@@ -370,6 +485,38 @@ mod tests {
         assert_eq!(symbolized.count_by_kind(EntityKind::ResourceId), 1);
         assert_eq!(symbolized.count_by_kind(EntityKind::EmailAddress), 1);
         assert_eq!(symbolized.count_by_kind(EntityKind::TenantId), 1);
+    }
+
+    #[test]
+    fn symbolizes_usernames_ip_addresses_and_urls() {
+        let document = ingest(IngestRequest {
+            source_name: "extended.txt".to_owned(),
+            contents: "Username: svc-collector\nClient IP: 10.42.0.7\nPortal URL: https://contoso.example.com/support/case/42".to_owned(),
+        })
+        .expect("expected ingest to succeed");
+
+        let symbolized = symbolize(&document).expect("expected symbolization to succeed");
+
+        assert_eq!(
+            symbolized.sanitized_contents,
+            "Username: U1\nClient IP: IP1\nPortal URL: URL1"
+        );
+        assert_eq!(symbolized.count_by_kind(EntityKind::Username), 1);
+        assert_eq!(symbolized.count_by_kind(EntityKind::IpAddress), 1);
+        assert_eq!(symbolized.count_by_kind(EntityKind::CustomerUrl), 1);
+    }
+
+    #[test]
+    fn preserves_wrapping_punctuation_around_symbols() {
+        let document = ingest(IngestRequest {
+            source_name: "punctuation.txt".to_owned(),
+            contents: "Username: [svc-collector]\nPortal URL: (https://portal.contoso.example.com/cases/777),".to_owned(),
+        })
+        .expect("expected ingest to succeed");
+
+        let symbolized = symbolize(&document).expect("expected symbolization to succeed");
+
+        assert_eq!(symbolized.sanitized_contents, "Username: [U1]\nPortal URL: (URL1),");
     }
 
     #[test]

@@ -1,0 +1,1 @@
+Portal URL: https://contoso.example.com/support/cases/ABC-123?view=full

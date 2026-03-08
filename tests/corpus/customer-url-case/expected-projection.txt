@@ -1,0 +1,8 @@
+FORMAT cpx-v1
+CASE customer-url-case
+SUMMARY
+ line_count=1
+ symbolized_entities=1
+ customer_url=1
+EVENTS
+ t+00 Portal URL: URL1

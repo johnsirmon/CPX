@@ -1,0 +1,10 @@
+FORMAT cpx-v1
+CASE subscription-email-case
+SUMMARY
+ line_count=2
+ symbolized_entities=2
+ subscription_id=1
+ email_address=1
+EVENTS
+ t+00 Subscription: S1
+ t+01 Requester: E1

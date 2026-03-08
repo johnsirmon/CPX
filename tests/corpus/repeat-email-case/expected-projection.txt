@@ -1,0 +1,9 @@
+FORMAT cpx-v1
+CASE repeat-email-case
+SUMMARY
+ line_count=2
+ symbolized_entities=1
+ email_address=1
+EVENTS
+ t+00 Contact: E1
+ t+01 Escalation contact: E1

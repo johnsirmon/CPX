@@ -1,0 +1,1 @@
+Workspace: /subscriptions/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee/resourceGroups/example-rg/providers/Microsoft.Compute/virtualMachines/vm-01,

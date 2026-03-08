@@ -1,0 +1,10 @@
+FORMAT cpx-v1
+CASE username-ip-case
+SUMMARY
+ line_count=2
+ symbolized_entities=2
+ username=1
+ ip_address=1
+EVENTS
+ t+00 Username: U1
+ t+01 Client IP: IP1
