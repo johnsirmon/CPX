@@ -1,121 +1,116 @@
 # CPX
 
-CPX is a local-first CLI for preparing support case material for AI-assisted workflows without sending raw customer identifiers to an external model.
+CPX is a local-first CLI for preparing support case material for AI-assisted workflows
+without sending raw customer identifiers to an external model.
 
-This repository is initialized from `prd.md` and is intentionally scaffolded for AI-assisted implementation. The current focus is completing the local-only end-to-end workflow while keeping the repo explicit enough for both humans and coding agents to extend safely.
+CPX ingests text, replaces sensitive values with stable typed symbols, emits a
+model-safe projection artifact, stores the raw mappings in a local encrypted vault,
+and can later rehydrate approved symbolic output back to the original local values.
 
-## Current status
+## Start here
 
-- Product requirements: `prd.md`
-- Artifact format ADR: `docs\adr\0001-projection-artifact-format.md`
-- Agent guidance: `AGENTS.md`
-- Contribution rules: `CONTRIBUTING.md`
-- Starter corpus path: `tests\corpus\`
-- Canonical synthetic example: `tests\corpus\canonical-case\`
+If your goal is to use CPX rather than develop it, read these in order:
 
-The codebase now includes normalized ingest, deterministic rule-based symbolization for the default v1 entity categories, projection output for the `cpx-v1` text artifact, encrypted case-local vault storage, local rehydration, and a corpus-driven validation baseline with ten synthetic cases.
+1. [`quickstart.md`](quickstart.md) - shortest end-to-end path
+2. [`docs/user-guide.md`](docs/user-guide.md) - concepts, workflow, and safe operating guidance
+3. [`docs/cli-reference.md`](docs/cli-reference.md) - commands, flags, examples, and exit codes
+4. [`docs/troubleshooting.md`](docs/troubleshooting.md) - common failures and recovery steps
 
-If any file above does not exist, skip it and continue.
+Useful reference material:
+
+- [`tests\corpus\canonical-case\`](tests/corpus/canonical-case/) - synthetic end-to-end example
+- [`docs\adr\0001-projection-artifact-format.md`](docs/adr/0001-projection-artifact-format.md) - artifact contract
+- [`prd.md`](prd.md) - product source of truth
+
+## What CPX does
+
+CPX is built around a simple workflow:
+
+1. Read local case material from a file or stdin.
+2. Detect supported sensitive values and replace them with symbols such as `C1`, `T1`,
+   `E1`, `H1`, `R1`, or `URL1`.
+3. Emit a projection artifact that is safe to hand to a downstream AI workflow.
+4. Store the raw symbol map in a case-local encrypted vault that stays on the trusted side.
+5. Rehydrate approved symbolic output locally when you need the original values again.
+
+The core runtime is intentionally local-first and network-free. CPX prepares data for
+another model workflow; it does not make the outbound model call for you.
+
+## CLI at a glance
+
+CPX currently exposes three commands:
+
+- `cpx ingest` - validate and summarize an input
+- `cpx project` - create a model-safe projection and optional vault
+- `cpx rehydrate` - restore symbolic output with a local vault
+
+Typical Windows usage:
+
+```powershell
+$env:CPX_PASSPHRASE = "replace-with-a-local-passphrase"
+
+cpx project .\case.txt --output .\out\projection.txt
+cpx rehydrate .\model-output.txt --vault .\out\case-id.cpxvault --output .\out\trusted-output.txt
+```
+
+If the `CPX_PASSPHRASE` environment variable is set when you run `cpx project`, CPX
+will write a case-local `.cpxvault` file automatically unless you override the path
+with `--vault-output`.
+
+## What you should expect on disk
+
+After a normal projection and rehydration workflow, you will usually have:
+
+- a raw local input file such as `case.txt`
+- a model-safe projection file such as `projection.txt`
+- an encrypted local vault such as `canonical-case.cpxvault`
+- a trusted rehydrated output file such as `trusted-output.txt`
+
+The projection file is the one intended for downstream reasoning. The vault file is
+part of the trusted local boundary and should be kept local.
+
+## Current implementation status
+
+The repository currently includes:
+
+- normalized ingest for files and stdin
+- deterministic rule-based symbolization for the default v1 entity categories
+- projection output for the `cpx-v1` artifact format
+- encrypted case-local vault storage
+- local rehydration of symbolic output
+- a corpus-driven validation baseline with ten synthetic cases
+
+The canonical synthetic example lives under `tests\corpus\canonical-case\`.
+
+## Documentation map
+
+### Use CPX
+
+- [`quickstart.md`](quickstart.md)
+- [`docs/user-guide.md`](docs/user-guide.md)
+- [`docs/cli-reference.md`](docs/cli-reference.md)
+- [`docs/troubleshooting.md`](docs/troubleshooting.md)
+
+### Understand the product contract
+
+- [`prd.md`](prd.md)
+- [`docs/adr/0001-projection-artifact-format.md`](docs/adr/0001-projection-artifact-format.md)
+
+### Develop or contribute
+
+- [`CONTRIBUTING.md`](CONTRIBUTING.md)
+- [`AGENTS.md`](AGENTS.md)
+- [`tests/corpus/README.md`](tests/corpus/README.md)
 
 ## Source-of-truth order
 
 When instructions conflict, follow this order:
 
 1. `prd.md`
-2. ADRs in `docs/adr/`
-3. repository instructions in `.github/`
+2. ADRs in `docs\adr\`
+3. repository instructions in `.github\`
 4. `AGENTS.md`
 5. inline code comments and local conventions
 
-Do not change user-visible behavior, artifact contracts, or product scope without updating the relevant source-of-truth document.
-
-
-## Windows quick start
-
-For a Windows-first shell, start here:
-
-```powershell
-.\scripts\bootstrap-windows.ps1
-```
-
-What the bootstrap script does:
-
-- adds `%USERPROFILE%\.cargo\bin` to `PATH` for the current PowerShell session when Rust is installed but not yet visible in the shell,
-- imports the Visual Studio C++ build environment into the current session when Build Tools are installed but `link.exe` is not yet on `PATH`, and
-- runs the local validation script once prerequisites are available.
-
-If Rust or Visual Studio Build Tools are missing, the script exits with an explicit error and prints the next install step to unblock the session.
-
-This repository also pins the stable Rust channel plus `rustfmt` in `rust-toolchain.toml`, so a standard `rustup` install will resolve the expected formatter automatically for this workspace.
-
-## Planned workflow
-
-Once the Rust toolchain is installed:
-
-- On Windows with the MSVC toolchain, install Visual Studio Build Tools with the C++ workload so `link.exe` is available.
-- Use `.\scripts\validate-local.ps1` for CI-aligned local validation without rewriting formatting.
-- Use `.\scripts\validate-local.ps1 -WriteFormatting` if you want the formatter to rewrite files before validation.
-
-Canonical commands:
-
-```powershell
-cargo fmt --all
-cargo test --workspace
-cargo test -p cpx-core --test corpus corpus_cases_match_expected_outputs
-cargo run -p cpx-cli -- --help
-```
-
-Current CLI shape:
-
-```text
-cpx ingest <input-path-or-stdin>
-cpx project <input-path-or-stdin> --format cpx-v1 --output projection.txt [--vault-output case.cpxvault]
-cpx rehydrate <model-output-or-symbolic-text> --vault case.cpxvault --output trusted-output.txt
-```
-
-If the `CPX_PASSPHRASE` environment variable is set, `cpx project` will also write a case-local `.cpxvault` file alongside the projection output directory by default.
-
-## End-to-end local workflow
-
-```powershell
-$env:CPX_PASSPHRASE = "replace-with-a-local-passphrase"
-
-cargo run -p cpx-cli -- project .\tests\corpus\canonical-case\input.txt --output .\out\projection.txt
-cargo run -p cpx-cli -- rehydrate .\tests\corpus\canonical-case\expected-sanitized.txt --vault .\out\canonical-case.cpxvault --output .\out\trusted-output.txt
-```
-
-Expected result:
-
-- `projection.txt` contains only symbolic values and the `FORMAT cpx-v1` artifact.
-- `canonical-case.cpxvault` stores the encrypted local symbol mappings for that case.
-- `trusted-output.txt` restores the symbolic text back to the original local values.
-
-## Repository layout
-
-```text
-crates\
-  cpx-cli\     Binary entry point for the CPX CLI
-  cpx-core\    Core library surfaces for ingest, symbolize, project, rehydrate, and vault
-docs\
-  adr\         Normative architecture and contract decisions
-scripts\
-  *.ps1        Windows-first bootstrap and validation helpers
-tests\
-  corpus\      Synthetic validation corpus and canonical examples
-```
-
-## Implementation principles
-
-- Keep the core runtime local-first and network-free.
-- Keep dependencies minimal and auditable.
-- Prefer explicit contracts over inferred behavior.
-- Never use real customer data in examples or tests.
-- Treat `prd.md` as the product source of truth and ADRs as the implementation contract source of truth.
-
-## Next implementation steps
-
-1. Add CI and native release automation for Windows and Linux.
-2. Harden symbolization rules against additional adversarial formatting and false-negative edge cases.
-3. Expand operator docs and scripted workflow examples for pilot use.
-4. Install the Rust toolchain in this environment and run the full workspace validation commands.
-
+Do not change user-visible behavior, artifact contracts, or product scope without
+updating the relevant source-of-truth document.
