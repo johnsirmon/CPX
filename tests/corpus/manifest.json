@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "minimum_cases_for_v1": 8,
+  "cases": [
+    {
+      "id": "canonical-case",
+      "input": "canonical-case/input.txt",
+      "expected_sanitized": "canonical-case/expected-sanitized.txt",
+      "expected_projection": "canonical-case/expected-projection.txt",
+      "expected_rehydrated": "canonical-case/expected-rehydrated.txt",
+      "expected_symbol_count": 5,
+      "notes": "Starter synthetic case for onboarding and artifact-format validation."
+    }
+  ]
+}
+
+

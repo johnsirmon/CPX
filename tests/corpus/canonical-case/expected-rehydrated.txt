@@ -1,0 +1,3 @@
+Investigate the AMA failure on host ama-prod-17 for workspace /subscriptions/11111111-2222-3333-4444-555555555555/resourceGroups/example-rg/providers/Microsoft.OperationalInsights/workspaces/ws-example in tenant 00000000-1111-2222-3333-444444444444.
+Contact alice@example.com if user confirmation is required.
+Primary error: 0x80070005.
