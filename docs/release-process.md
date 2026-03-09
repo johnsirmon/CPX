@@ -20,6 +20,8 @@ Each archive contains:
 
 The archive filename and the top-level extracted folder both include the release version.
 
+On both supported platforms, extracting the archive yields a single top-level directory named after the release archive, for example `cpx-windows-x86_64-v0.1.0`.
+
 This keeps the operator install path simple without requiring Rust or a source checkout.
 
 ## How releases are triggered
@@ -35,6 +37,12 @@ Behavior by trigger:
 
 - `workflow_dispatch` builds and uploads versioned workflow artifacts using the workspace version from `Cargo.toml`
 - a pushed `v*` tag builds, packages, uploads workflow artifacts, and publishes versioned GitHub release assets using that tag
+
+Tagged release guardrails:
+
+- the pushed tag must match the workspace version exactly, for example workspace `0.1.0` requires tag `v0.1.0`
+- the workflow uses `contents: write` permission so it can attach packaged archives to the GitHub release
+- GitHub auto-generates the release notes from the tagged changeset
 
 ## What the release workflow validates
 

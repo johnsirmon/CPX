@@ -6,6 +6,13 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   build:
     strategy:
@@ -23,6 +30,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -60,6 +69,15 @@ jobs:
           "package_dir=$packageDir" >> $env:GITHUB_OUTPUT
           "archive_file=$archiveFile" >> $env:GITHUB_OUTPUT
 
+      - name: Validate tag matches workspace version
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        run: |
+          $expectedTag = "v$env:WORKSPACE_VERSION"
+          if ($env:RELEASE_VERSION -ne $expectedTag) {
+            throw "Release tag $env:RELEASE_VERSION does not match workspace version $expectedTag"
+          }
+
       - name: Run tests
         run: cargo test --workspace
 
@@ -92,7 +110,7 @@ jobs:
       - name: Package Windows artifact
         if: runner.os == 'Windows'
         shell: pwsh
-        run: Compress-Archive -Path "$env:PACKAGE_DIR\*" -DestinationPath "$env:ARCHIVE_FILE"
+        run: Compress-Archive -Path "$env:PACKAGE_DIR" -DestinationPath "$env:ARCHIVE_FILE"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
@@ -104,4 +122,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          name: ${{ steps.release_meta.outputs.release_version }}
           files: ${{ steps.release_meta.outputs.archive_file }}
+          fail_on_unmatched_files: true
+          generate_release_notes: true
