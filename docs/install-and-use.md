@@ -2,7 +2,7 @@
 
 This guide is for people who just want to install CPX and use it safely.
 
-CPX is a command-line tool. In this repository, it does not yet come with a Windows installer, MSI, or Linux package-manager package. The simplest way to use it is to place the `cpx` program in a folder on your machine and run it from a terminal.
+CPX is a command-line tool. The easiest way to install it is to download the release archive for your platform, extract it, and run the included `cpx` program. CPX does not currently use a Windows installer, MSI, or Linux package-manager package.
 
 ## What CPX does
 
@@ -21,16 +21,26 @@ You need:
 - a plain-text case file such as `case.txt`
 - a passphrase you will keep private on your own machine
 
-If someone on your team distributes CPX internally, ask them for the current binary package for your platform.
+Preferred source:
+
+- download the current CPX release archive for your platform from the repository release page
+
+The release archive name includes the version, for example:
+
+- Windows: `cpx-windows-x86_64-v0.1.0.zip`
+- Linux: `cpx-linux-x86_64-v0.1.0.tar.gz`
+
+If someone on your team distributes CPX internally, ask them for the current approved CPX release archive for your platform.
 
 ## Install on Windows
 
 ### Simple install
 
 1. Create a folder for CPX, for example `C:\Tools\CPX`.
-2. Copy `cpx.exe` into that folder.
-3. Open PowerShell.
-4. Run this command to confirm CPX starts:
+2. Download and extract the Windows release archive.
+3. Copy `cpx.exe` from the extracted folder into `C:\Tools\CPX`, or keep the extracted folder where it is.
+4. Open PowerShell.
+5. Run this command to confirm CPX starts:
 
 ```powershell
 C:\Tools\CPX\cpx.exe --help
@@ -66,14 +76,15 @@ cpx --help
 mkdir -p "$HOME/.local/bin"
 ```
 
-3. Copy the `cpx` binary into that folder.
-4. Make it executable:
+3. Download and extract the Linux release archive.
+4. Copy the `cpx` binary into that folder.
+5. Make it executable:
 
 ```bash
 chmod +x "$HOME/.local/bin/cpx"
 ```
 
-5. Confirm CPX starts:
+6. Confirm CPX starts:
 
 ```bash
 "$HOME/.local/bin/cpx" --help
@@ -274,3 +285,7 @@ Then see:
 - [`troubleshooting.md`](troubleshooting.md)
 - [`cli-reference.md`](cli-reference.md)
 - [`..\quickstart.md`](../quickstart.md)
+
+## For maintainers
+
+If you need to create or publish CPX release archives, see [`release-process.md`](release-process.md).

@@ -14,12 +14,10 @@ jobs:
         include:
           - os: ubuntu-latest
             artifact_name: cpx-linux-x86_64
-            binary_path: target/release/cpx
-            archive_name: cpx-linux-x86_64.tar.gz
+            binary_name: cpx
           - os: windows-latest
             artifact_name: cpx-windows-x86_64
-            binary_path: target/release/cpx.exe
-            archive_name: cpx-windows-x86_64.zip
+            binary_name: cpx.exe
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -29,29 +27,76 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Resolve release version
+        shell: pwsh
+        run: |
+          $pkg = cargo pkgid -p cpx-cli
+          if ($pkg -notmatch '@(?<version>[0-9A-Za-z\.-\+]+)$') {
+            throw "Could not determine cpx-cli version from cargo pkgid output: $pkg"
+          }
+
+          $workspaceVersion = $Matches.version
+
+          if ("${{ github.ref }}".StartsWith("refs/tags/")) {
+            $releaseVersion = "${{ github.ref_name }}"
+          } else {
+            $releaseVersion = "v$workspaceVersion"
+          }
+
+          $packageDir = "${{ matrix.artifact_name }}-$releaseVersion"
+          if ("${{ runner.os }}" -eq "Windows") {
+            $archiveFile = "$packageDir.zip"
+          } else {
+            $archiveFile = "$packageDir.tar.gz"
+          }
+
+          "WORKSPACE_VERSION=$workspaceVersion" >> $env:GITHUB_ENV
+          "RELEASE_VERSION=$releaseVersion" >> $env:GITHUB_ENV
+          "PACKAGE_DIR=$packageDir" >> $env:GITHUB_ENV
+          "ARCHIVE_FILE=$archiveFile" >> $env:GITHUB_ENV
+
       - name: Run tests
         run: cargo test --workspace
 
       - name: Build release binary
         run: cargo build --release -p cpx-cli
 
+      - name: Stage Linux package contents
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p "$PACKAGE_DIR"
+          cp "target/release/${{ matrix.binary_name }}" "$PACKAGE_DIR/"
+          cp README.md "$PACKAGE_DIR/README.md"
+          cp docs/install-and-use.md "$PACKAGE_DIR/install-and-use.md"
+          printf '%s\n' "$RELEASE_VERSION" > "$PACKAGE_DIR/VERSION.txt"
+
+      - name: Stage Windows package contents
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force "$env:PACKAGE_DIR" | Out-Null
+          Copy-Item "target\release\${{ matrix.binary_name }}" "$env:PACKAGE_DIR\${{ matrix.binary_name }}"
+          Copy-Item README.md "$env:PACKAGE_DIR\README.md"
+          Copy-Item docs\install-and-use.md "$env:PACKAGE_DIR\install-and-use.md"
+          Set-Content -Path "$env:PACKAGE_DIR\VERSION.txt" -Value $env:RELEASE_VERSION
+
       - name: Package Linux artifact
         if: runner.os == 'Linux'
-        run: tar -czf "${{ matrix.archive_name }}" -C target/release cpx
+        run: tar -czf "$ARCHIVE_FILE" "$PACKAGE_DIR"
 
       - name: Package Windows artifact
         if: runner.os == 'Windows'
         shell: pwsh
-        run: Compress-Archive -Path target\release\cpx.exe -DestinationPath "${{ matrix.archive_name }}"
+        run: Compress-Archive -Path "$env:PACKAGE_DIR\*" -DestinationPath "$env:ARCHIVE_FILE"
 
       - name: Upload workflow artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: ${{ matrix.archive_name }}
+          name: ${{ env.PACKAGE_DIR }}
+          path: ${{ env.ARCHIVE_FILE }}
 
       - name: Publish release artifact
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ matrix.archive_name }}
+          files: ${{ env.ARCHIVE_FILE }}

@@ -113,6 +113,7 @@ If you intentionally change behavior, update the relevant PRD or ADR first, then
 
 - [`CONTRIBUTING.md`](CONTRIBUTING.md)
 - [`AGENTS.md`](AGENTS.md)
+- [`docs/release-process.md`](docs/release-process.md)
 - [`tests/corpus/README.md`](tests/corpus/README.md)
 
 ## Source-of-truth order
