@@ -1,0 +1,5 @@
+Customer Alice Example reported that the AMA agent on host ama-prod-17 failed to read workspace /subscriptions/11111111-2222-3333-4444-555555555555/resourceGroups/example-rg/providers/Microsoft.OperationalInsights/workspaces/ws-example.
+Contact: alice@example.com
+Tenant: 00000000-1111-2222-3333-444444444444
+Timestamp: 2026-03-08T00:00:00Z
+Error: 0x80070005
