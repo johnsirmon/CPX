@@ -41,7 +41,7 @@ jobs:
         shell: pwsh
         run: |
           $pkg = cargo pkgid -p cpx-cli
-          if ($pkg -notmatch '@(?<version>[0-9A-Za-z\.-\+]+)$') {
+          if ($pkg -notmatch '@(?<version>[0-9A-Za-z.+-]+)$') {
             throw "Could not determine cpx-cli version from cargo pkgid output: $pkg"
           }
 
