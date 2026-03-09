@@ -5,8 +5,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use cpx_core::ingest::{ingest, IngestRequest};
 use cpx_core::project::project;
 use cpx_core::rehydrate::{rehydrate, RehydrateRequest};
-use cpx_core::symbolize::symbolize;
+use cpx_core::symbolize::{symbolize, SymbolEntry};
 use cpx_core::vault::{open, store, StoreRequest};
+use cpx_core::FORMAT_VERSION;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -83,6 +84,24 @@ fn run_case(corpus_dir: &Path, case: &CorpusCase) {
     .expect("expected round-trip rehydration to succeed");
 
     assert_eq!(
+        projection.format_version, FORMAT_VERSION,
+        "case {} projection format version differed; {}",
+        case.id, case.notes
+    );
+    assert_projection_starts_with_format_marker(case, &projection.body);
+    assert_no_raw_values_leaked(
+        case,
+        "sanitized output",
+        &symbolized.sanitized_contents,
+        &symbolized.entries,
+    );
+    assert_no_raw_values_leaked(
+        case,
+        "projection output",
+        &projection.body,
+        &symbolized.entries,
+    );
+    assert_eq!(
         normalize_fixture(&symbolized.sanitized_contents),
         normalize_fixture(&expected_sanitized),
         "case {} sanitized output differed; {}",
@@ -144,4 +163,37 @@ fn normalize_fixture(contents: &str) -> String {
         .replace("\r\n", "\n")
         .trim_end_matches('\n')
         .to_owned()
+}
+
+fn assert_projection_starts_with_format_marker(case: &CorpusCase, projection_body: &str) {
+    let first_line = projection_body
+        .lines()
+        .next()
+        .expect("expected projection output to contain a format line");
+
+    assert_eq!(
+        first_line,
+        format!("FORMAT {FORMAT_VERSION}"),
+        "case {} projection header drifted from the ADR contract; {}",
+        case.id,
+        case.notes
+    );
+}
+
+fn assert_no_raw_values_leaked(
+    case: &CorpusCase,
+    surface_name: &str,
+    output: &str,
+    entries: &[SymbolEntry],
+) {
+    for entry in entries {
+        assert!(
+            !output.contains(&entry.raw),
+            "case {} {} leaked the raw value for symbol {}; {}",
+            case.id,
+            surface_name,
+            entry.symbol,
+            case.notes
+        );
+    }
 }

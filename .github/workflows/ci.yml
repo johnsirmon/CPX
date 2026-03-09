@@ -29,7 +29,7 @@ jobs:
       - name: Run workspace tests
         run: cargo test --workspace
 
-      - name: Run corpus regression gate
+      - name: Run corpus regression gate (repo drift guard)
         run: cargo test -p cpx-core --test corpus corpus_cases_match_expected_outputs
 
       - name: Verify CLI help

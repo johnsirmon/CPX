@@ -82,6 +82,17 @@ The repository currently includes:
 
 The canonical synthetic example lives under `tests\corpus\canonical-case\`.
 
+## How repo drift is prevented
+
+CPX treats repo drift as implementation diverging from the intended design. The guardrails are meant to stay simple:
+
+- `prd.md` defines the intended behavior and scope.
+- `docs\adr\0001-projection-artifact-format.md` locks the `cpx-v1` projection contract.
+- `tests\corpus\` is the regression baseline; unexpected projection or safety changes should fail there first.
+- CI and `.\scripts\validate-local.ps1` run those checks before changes are merged.
+
+If you intentionally change behavior, update the relevant PRD or ADR first, then update the corpus fixtures and tests in the same change.
+
 ## Documentation map
 
 ### Use CPX

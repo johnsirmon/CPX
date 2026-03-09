@@ -30,26 +30,38 @@ function Invoke-RepoCommand {
     }
 }
 
-if (-not (Get-Command "cargo.exe" -ErrorAction SilentlyContinue)) {
+function Resolve-CargoPath {
+    $cargoCommand = Get-Command "cargo.exe" -ErrorAction SilentlyContinue
+    if ($cargoCommand) {
+        return $cargoCommand.Source
+    }
+
+    $defaultCargoPath = Join-Path $env:USERPROFILE ".cargo\bin\cargo.exe"
+    if (Test-Path $defaultCargoPath) {
+        return $defaultCargoPath
+    }
+
     throw "cargo.exe is not available. Run .\scripts\bootstrap-windows.ps1 first or add %USERPROFILE%\.cargo\bin to PATH."
 }
+
+$cargoPath = Resolve-CargoPath
 
 Push-Location $repoRoot
 try {
     if ($WriteFormatting) {
-        Invoke-RepoCommand -FilePath "cargo" -Arguments @("fmt", "--all")
+        Invoke-RepoCommand -FilePath $cargoPath -Arguments @("fmt", "--all")
     }
     else {
-        Invoke-RepoCommand -FilePath "cargo" -Arguments @("fmt", "--all", "--check")
+        Invoke-RepoCommand -FilePath $cargoPath -Arguments @("fmt", "--all", "--check")
     }
 
-    Invoke-RepoCommand -FilePath "cargo" -Arguments @("test", "--workspace")
+    Invoke-RepoCommand -FilePath $cargoPath -Arguments @("test", "--workspace")
 
     if (-not $SkipCorpusGate) {
-        Invoke-RepoCommand -FilePath "cargo" -Arguments @("test", "-p", "cpx-core", "--test", "corpus", "corpus_cases_match_expected_outputs")
+        Invoke-RepoCommand -FilePath $cargoPath -Arguments @("test", "-p", "cpx-core", "--test", "corpus", "corpus_cases_match_expected_outputs")
     }
 
-    Invoke-RepoCommand -FilePath "cargo" -Arguments @("run", "-p", "cpx-cli", "--", "--help")
+    Invoke-RepoCommand -FilePath $cargoPath -Arguments @("run", "-p", "cpx-cli", "--", "--help")
 }
 finally {
     Pop-Location
