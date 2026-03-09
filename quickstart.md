@@ -1,5 +1,7 @@
 # CPX quick start
 
+If you need installation steps first, start with [`docs/install-and-use.md`](docs/install-and-use.md).
+
 This guide shows the fastest safe path through the CPX workflow:
 
 1. project raw case text into a model-safe artifact

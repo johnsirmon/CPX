@@ -11,10 +11,11 @@ and can later rehydrate approved symbolic output back to the original local valu
 
 If your goal is to use CPX rather than develop it, read these in order:
 
-1. [`quickstart.md`](quickstart.md) - shortest end-to-end path
-2. [`docs/user-guide.md`](docs/user-guide.md) - concepts, workflow, and safe operating guidance
-3. [`docs/cli-reference.md`](docs/cli-reference.md) - commands, flags, examples, and exit codes
-4. [`docs/troubleshooting.md`](docs/troubleshooting.md) - common failures and recovery steps
+1. [`docs/install-and-use.md`](docs/install-and-use.md) - simplest install and day-to-day usage guide for Windows and Linux
+2. [`quickstart.md`](quickstart.md) - shortest end-to-end path
+3. [`docs/user-guide.md`](docs/user-guide.md) - concepts, workflow, and safe operating guidance
+4. [`docs/cli-reference.md`](docs/cli-reference.md) - commands, flags, examples, and exit codes
+5. [`docs/troubleshooting.md`](docs/troubleshooting.md) - common failures and recovery steps
 
 Useful reference material:
 
@@ -97,6 +98,7 @@ If you intentionally change behavior, update the relevant PRD or ADR first, then
 
 ### Use CPX
 
+- [`docs/install-and-use.md`](docs/install-and-use.md)
 - [`quickstart.md`](quickstart.md)
 - [`docs/user-guide.md`](docs/user-guide.md)
 - [`docs/cli-reference.md`](docs/cli-reference.md)
