@@ -1,0 +1,16 @@
+FORMAT cpx-v1
+CASE canonical-case
+SUMMARY
+ line_count=5
+ symbolized_entities=5
+ customer_name=1
+ tenant_id=1
+ email_address=1
+ hostname=1
+ resource_id=1
+EVENTS
+ t+00 Customer C1 reported that the AMA agent on host H1 failed to read workspace R1.
+ t+01 Contact: E1
+ t+02 Tenant: T1
+ t+03 Timestamp: 2026-03-08T00:00:00Z
+ t+04 Error: 0x80070005
